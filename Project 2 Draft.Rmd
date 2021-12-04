@@ -1,0 +1,108 @@
+---
+title: "Project 2C"
+output: html_notebook
+---
+Scientific Question: Can Type I and II Diabetes treatments used for humans be used as an effective treatment for certain animals? 
+Scientific Hypothesis: If the insulin protein sequence for an organism is similar to that of humans, then it may positively benefit from, insulin focused, diabetes treatments that are used for humans. 
+
+1. Read the file called "human_insulin.fasta" which contains the amino acid sequence for Homo Sapien Insulin
+```{r}
+library(Biostrings)
+
+human_insulin <- readAAStringSet("human_insulin.fasta", format="fasta", nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE, with.qualities=FALSE)
+human_insulin
+```
+2. Create a function to convert the sequence (and later subsequent sequences) to a vector so it can be analyzed via BLAST Search
+```{r}
+library(Biostrings)
+
+vector <- function(x) {
+  toString(x)
+}
+
+human_insulin_vector <- vector(human_insulin)
+human_insulin_vector
+```
+3. Conduct a BLAST search of the human_insulin_vector sequence
+```{r}
+library(annotate)
+
+blastSequences(human_insulin, "nr", hitListSize="10", filter="L", expect="1", program="blastp", as=c("data.frame"))
+```
+4. Select 3 of the hits, read the sequences, and convert to vectors using the function from above
+```{r}
+library(Biostrings)
+
+canus_lupus_insulin <- readAAStringSet("canus_lupus_insulin.fasta", format="fasta", nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE, with.qualities=FALSE)
+felis_insulin <- readAAStringSet("felis_insulin.fasta", format="fasta", nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE, with.qualities=FALSE)
+horse_insulin <- readAAStringSet("horse_insulin.fasta", format="fasta", nrec=-1L, skip=0L, seek.first.rec=FALSE, use.names=TRUE, with.qualities=FALSE)
+
+canus_lupus_insulin_vector <- vector(canus_lupus_insulin)
+felis_insulin_vector <- vector(felis_insulin)
+horse_insulin_vector <- vector(horse_insulin)
+```
+5. Perform a pairwise sequence alignment between the original data and each BLAST Hit
+```{r}
+library(Biostrings)
+library(seqinr)
+
+pairwiseAlignment(pattern = c("human_insulin_vector"), subject = "human_insulin_vector")
+pairwiseAlignment(pattern = c("human_insulin_vector"), subject = "canus_lupus_vector")
+pairwiseAlignment(pattern = c("human_insulin_vector"), subject = "felis_vector")
+pairwiseAlignment(pattern = c("human_insulin_vector"), subject = "horse_vector")
+
+pairwiseAlignment(pattern = c("canus_lupis_vector"), subject = "canus_lupus_vector")
+pairwiseAlignment(pattern = c("canus_lupus_vector"), subject = "felis_vector")
+pairwiseAlignment(pattern = c("canus_lupus_vector"), subject = "horse_vector")
+
+pairwiseAlignment(pattern = c("felis_vector"), subject = "felis_vector")
+pairwiseAlignment(pattern = c("felis_vector"), subject = "horse_vector")
+
+pairwiseAlignment(pattern = c("horse_vector"), subject = "horse_vector")
+```
+6. Organize the data into a matrix in order to generate a Heatmap
+```{r}
+human <- c(77.77263, -27.94256, -24.82432, -35.64309)
+canus_lupus <- c(-27.94256, 58.2084, -27.64309, -38.50751)
+felis <- c(-24.82432, -27.64309, 41.29409, -5.971493)
+horse <- c(-35.64309, -38.50751, -5.971493, 37.82003)
+
+pairwise_matrix <- matrix(c(human, canus_lupus, felis, horse), nrow = 4, byrow = TRUE)
+pairwise_matrix
+columns <- c("Human", "Canus", "Felis", "Horse")
+rows <- c("Human", "Canus", "Felis", "Horse")
+
+colnames(pairwise_matrix) <- columns
+rownames(pairwise_matrix) <- rows
+
+pairwise_matrix
+```
+7. Generate a Heatmap. This map verifies BLAST Search findings that humans and dogs have the most similarities between insulin sequences, suggesting that dogs could benefit the most from insulin focused diabetes treatment methods for humans 
+```{r}
+library(gplots)
+
+heatmap(pairwise_matrix)
+```
+8. Convert the data into a vector of chars in order to generate three dotplots 
+```{r}
+library(seqinr)
+
+Human <- s2c(human_insulin_vector)
+Canus <- s2c(canus_lupus_insulin_vector)
+Felis <- s2c(felis_insulin_vector)
+Horse <- s2c (horse_insulin_vector)
+```
+9. Plot three dotplots comparing the Human Insulin Sequence to each respective BLAST Hit 
+```{r}
+dotPlot(Human, Canus, wsize = 1, wstep = 1, nmatch = 1, col = c("white", "black"), 
+xlab = deparse(substitute(Human)), ylab = deparse(substitute(Canus)))
+
+dotPlot(Human, Felis, wsize = 1, wstep = 1, nmatch = 1, col = c("white", "black"), 
+xlab = deparse(substitute(Human)), ylab = deparse(substitute(Felis)))
+
+dotPlot(Human, Horse, wsize = 1, wstep = 1, nmatch = 1, col = c("white", "black"), 
+xlab = deparse(substitute(Human)), ylab = deparse(substitute(Horse)))
+```
+
+
+
